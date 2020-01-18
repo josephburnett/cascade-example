@@ -2,31 +2,54 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
 	"net/http"
+	"strings"
+	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/josephburnett/cascade-example/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-	metricName := flag.String("metric-name", "foo", "custom metric name")
-	metricValue := flag.Int64("metric-value", 0, "custom metric value")
-	port := flag.Int64("port", 8080, "port to expose metrics on")
+	serviceName := flag.String("service-name", "default", "The name of this service.")
+	requestWeightMillicoreSeconds := flag.Int("request-weight-millicore-seconds", 200, "Weight in millicores of each request.")
+	dependencies := flag.String("dependencies", "", "Comma-separated list of downstream service dependencies.")
 	flag.Parse()
 
-	metric := prometheus.NewGauge(
-		prometheus.GaugeOpts{
-			Name: *metricName,
-			Help: "Custom metric",
-		},
-	)
-	prometheus.MustRegister(metric)
-	metric.Set(float64(*metricValue))
+	requestHandler := newHandler(*serviceName, *requestWeightMillicoreSeconds, *dependencies)
 
+	http.HandleFunc("/", requestHandler)
 	http.Handle("/metrics", promhttp.Handler())
-	log.Printf("Starting to listen on :%d", *port)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
-	log.Fatal("Failed to start serving metrics: %v", err)
+	http.ListenAndServe(":8080", nil)
+}
+
+func newHandler(serviceName string, weight int, dependencies string) func(http.ResponseWriter, *http.Request) {
+	reporter := metrics.NewReporter(serviceName)
+	services := strings.Split(dependencies, ",")
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// Do some work
+		burnCpu(weight)
+
+		// Call some other services
+		for _, _ = range services {
+			// TODO: make service calls
+		}
+		reporter.Success(0)
+	}
+}
+
+func burnCpu(millicoreSeconds int) {
+	done := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+			}
+		}
+	}()
+	time.Sleep(time.Duration(millicoreSeconds*1000000) * time.Millisecond)
+	close(done)
 }

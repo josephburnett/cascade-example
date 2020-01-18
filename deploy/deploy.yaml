@@ -18,7 +18,9 @@ spec:
       containers:
       - command:
         args:
-        - "--metric-value=100"
+        - --service-name=A
+        - --request-weight-millicore-seconds=200
+        - --dependencies=B,C,D
         image: github.com/josephburnett/cascade-example/cmd
         imagePullPolicy: Always
         name: cascade-example
