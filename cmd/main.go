@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/josephburnett/cascade-example/pkg/metrics"
+	"github.com/josephburnett/cascade-example/pkg/rate"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -29,11 +30,30 @@ func main() {
 
 func newHandler() func(http.ResponseWriter, *http.Request) {
 	reporter := metrics.NewReporter(*serviceName)
+	limiter := rate.NewLimiter(10)
 	services := strings.Split(*dependencies, ",")
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// Metrics and logs
 		start := time.Now()
+		report := reporter.Success
+		status := http.StatusOK
 		output := "( " + *serviceName + " "
+		defer func() {
+			output += fmt.Sprintf("%v )", status)
+			w.WriteHeader(status)
+			w.Write([]byte(output))
+			report(time.Since(start))
+			log.Println(output)
+		}()
+
+		// Circuit breaker
+		if ok := limiter.In(); !ok {
+			report = reporter.Overload
+			status = http.StatusServiceUnavailable
+			return
+		}
+		defer limiter.Out()
 
 		// Do some work
 		burnCpu(*weight)
@@ -58,17 +78,9 @@ func newHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		if failure {
-			reporter.Failure(time.Since(start))
-			w.WriteHeader(http.StatusInternalServerError)
-			output += "ERROR "
-		} else {
-			reporter.Success(time.Since(start))
-			output += "OK "
-			w.WriteHeader(http.StatusOK)
+			report = reporter.Failure
+			status = http.StatusInternalServerError
 		}
-		output += ")"
-		log.Println(output)
-		w.Write([]byte(output))
 	}
 }
 
