@@ -1,4 +1,4 @@
-goals = help all a b c ns clean
+goals = help all a b c ns watch clean
 .DEFAULT_GOAL : help
 .PHONY : $(goals)
 .ONESHELL : $(goals)
@@ -43,6 +43,9 @@ c : ns
 
 ns :
 	kubectl create namespace cascade-example --dry-run=true -o yaml | kubectl apply -f -
+
+watch :
+	watch 'kubectl get hpa -n cascade-example; echo; kubectl get pods -n cascade-example'
 
 clean :
 	kubectl delete namespace cascade-example --ignore-not-found
