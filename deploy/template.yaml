@@ -60,3 +60,21 @@ spec:
     app: SERVICE
   sessionAffinity: None
   type: ClusterIP
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: SERVICE
+  namespace: cascade-example
+spec:
+  maxReplicas: 10
+  metrics:
+  - resource:
+      name: cpu
+      targetAverageUtilization: 50
+    type: Resource
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: SERVICE
