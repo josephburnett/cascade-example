@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cascade-example-SERVICE
+  name: SERVICE
   namespace: cascade-example
   labels:
-    app: cascade-example-SERVICE
+    app: SERVICE
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: cascade-example-SERVICE
+      app: SERVICE
   template:
     metadata:
       labels:
-        app: cascade-example-SERVICE
+        app: SERVICE
     spec:
       containers:
       - command:
         args:
         - --service-name=SERVICE
-        - --request-weight-millicore-seconds=WEIGHT
+        - --request-weight-millicore-duration=WEIGHT
         - --dependencies=DEPS
         image: github.com/josephburnett/cascade-example/cmd
         imagePullPolicy: Always
@@ -45,3 +45,18 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: SERVICE
+  namespace: cascade-example
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: SERVICE
+  sessionAffinity: None
+  type: ClusterIP

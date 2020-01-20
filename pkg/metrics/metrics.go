@@ -18,10 +18,12 @@ type Reporter struct {
 	successCount  float64
 	overloadCount float64
 	timeoutCount  float64
+	failCount     float64
 
 	successMillis  float64
 	overloadMillis float64
 	timeoutMillis  float64
+	failMillis     float64
 }
 
 func NewReporter(service string) *Reporter {
@@ -72,6 +74,11 @@ func NewReporter(service string) *Reporter {
 					value:  &r.timeoutCount,
 					over:   1,
 				}, {
+					gauge:  r.qps,
+					status: http.StatusInternalServerError,
+					value:  &r.failCount,
+					over:   1,
+				}, {
 					gauge:  r.latency,
 					status: http.StatusOK,
 					value:  &r.successMillis,
@@ -86,6 +93,11 @@ func NewReporter(service string) *Reporter {
 					status: http.StatusGatewayTimeout,
 					value:  &r.timeoutMillis,
 					over:   r.timeoutCount,
+				}, {
+					gauge:  r.latency,
+					status: http.StatusInternalServerError,
+					value:  &r.failMillis,
+					over:   r.failCount,
 				}} {
 					g := m.gauge.WithLabelValues(strconv.Itoa(m.status))
 					g.Set(*m.value)
@@ -117,4 +129,11 @@ func (r *Reporter) Timeout(d time.Duration) {
 	defer r.mux.Unlock()
 	r.timeoutCount++
 	r.timeoutMillis += float64(d.Milliseconds())
+}
+
+func (r *Reporter) Failure(d time.Duration) {
+	r.mux.Lock()
+	defer r.mux.Lock()
+	r.failCount++
+	r.failMillis += float64(d.Milliseconds())
 }

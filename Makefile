@@ -12,17 +12,17 @@ help :
 all : a b c
 
 a : SERVICE = a
-a : WEIGHT = 20
+a : WEIGHT = 20ms
 a : CPU = 20m
 a : DEPS = b,c
 
 b : SERVICE = b
-b : WEIGHT = 20
+b : WEIGHT = 20ms
 b : CPU = 20m
 b : DEPS = 
 
 c : SERVICE = c
-c : WEIGHT = 20
+c : WEIGHT = 20ms
 c : CPU = 20m
 c : DEPS = 
 
