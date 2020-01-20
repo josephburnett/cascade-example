@@ -1,32 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cascade-example
+  name: cascade-example-SERVICE
+  namespace: cascade-example
   labels:
-    app: cascade-example
+    app: cascade-example-SERVICE
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: cascade-example
+      app: cascade-example-SERVICE
   template:
     metadata:
       labels:
-        app: cascade-example
+        app: cascade-example-SERVICE
     spec:
-      containers:
       containers:
       - command:
         args:
-        - --service-name=A
-        - --request-weight-millicore-seconds=200
-        - --dependencies=B,C,D
+        - --service-name=SERVICE
+        - --request-weight-millicore-seconds=WEIGHT
+        - --dependencies=DEPS
         image: github.com/josephburnett/cascade-example/cmd
         imagePullPolicy: Always
         name: cascade-example
         resources:
           requests:
-            cpu: 100m
+            cpu: CPU
       - name: prometheus-to-sd
         image: gcr.io/google-containers/prometheus-to-sd:v0.5.0
         command:
