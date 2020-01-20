@@ -35,6 +35,9 @@ spec:
         - --stackdriver-prefix=custom.googleapis.com
         - --pod-id=$(POD_ID)
         - --namespace-id=$(POD_NAMESPACE)
+        resources:
+          requests:
+            cpu: 1m
         env:
         - name: POD_ID
           valueFrom:
