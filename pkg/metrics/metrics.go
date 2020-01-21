@@ -1,6 +1,9 @@
 package metrics
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -26,7 +29,7 @@ type Reporter struct {
 	failMillis     float64
 }
 
-func NewReporter(service string) *Reporter {
+func NewReporter(service, pod string) *Reporter {
 	r := &Reporter{
 		qps: prom.NewGaugeVec(
 			prom.GaugeOpts{
@@ -53,6 +56,15 @@ func NewReporter(service string) *Reporter {
 			select {
 			case <-ticker.C:
 				r.mux.Lock()
+
+				// Report to local aggregating service.
+				var totalQps float64
+				for _, qps := range []float64{r.successCount, r.failCount, r.overloadCount, r.timeoutCount} {
+					totalQps += qps
+				}
+				go reportQps(service, pod, totalQps)
+
+				// Report to Stackdriver
 				for _, m := range []struct {
 					gauge  *prom.GaugeVec
 					status int
@@ -136,4 +148,22 @@ func (r *Reporter) Failure(d time.Duration) {
 	defer r.mux.Lock()
 	r.failCount++
 	r.failMillis += float64(d.Milliseconds())
+}
+
+func reportQps(service, pod string, qps float64) {
+	svc := "http://metrics.cascade-example.svc.cluster.local"
+	url := svc + fmt.Sprintf("/service/%s/pod/%s/qps/%v", service, pod, int(qps))
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	resp, err := client.Get(url)
+	if err != nil {
+		log.Printf("error reporting qps: %v", err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("non ok status reporting qps: %v (%v)", string(msg), resp.StatusCode)
+	}
 }

@@ -17,6 +17,7 @@ import (
 
 var (
 	serviceName  = flag.String("service-name", "default", "The name of this service.")
+	podName      = flag.String("pod-name", "unknown", "The name of this pod.")
 	opWeight     = flag.Duration("op-weight-millicore-duration", 0, "Weight in millicores per time unit of each request.")
 	generateOps  = flag.Int("generate-ops", 0, "Operations per second to generate.")
 	limit        = flag.Int("ops-limit", 1, "OPS limit of the service after which it returns 503 overload.")
@@ -29,7 +30,7 @@ var (
 
 func init() {
 	flag.Parse()
-	reporter = metrics.NewReporter(*serviceName)
+	reporter = metrics.NewReporter(*serviceName, *podName)
 	limiter = rate.NewLimiter(*limit)
 	services = strings.Split(*dependencies, ",")
 }
@@ -74,7 +75,7 @@ func op() (string, int) {
 	// Do some work
 	// burnCpu(*opWeight)
 	// output += fmt.Sprintf("%v ", *opWeight)
-	p := largestPrime(8000000) // ~0.1 cpu/sec
+	p := largestPrime(800000) // ~0.01 cpu/sec
 	output += fmt.Sprintf("%v ", p)
 
 	// Call some other services
