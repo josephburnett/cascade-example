@@ -145,7 +145,7 @@ func (r *Reporter) Timeout(d time.Duration) {
 
 func (r *Reporter) Failure(d time.Duration) {
 	r.mux.Lock()
-	defer r.mux.Lock()
+	defer r.mux.Unlock()
 	r.failCount++
 	r.failMillis += float64(d.Milliseconds())
 }
