@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -18,6 +19,7 @@ var (
 	serviceName  = flag.String("service-name", "default", "The name of this service.")
 	opWeight     = flag.Duration("op-weight-millicore-duration", 0, "Weight in millicores per time unit of each request.")
 	generateOps  = flag.Int("generate-ops", 0, "Operations per second to generate.")
+	limit        = flag.Int("ops-limit", 1, "OPS limit of the service after which it returns 503 overload.")
 	dependencies = flag.String("dependencies", "", "Comma-separated list of downstream service dependencies.")
 
 	reporter *metrics.Reporter
@@ -28,7 +30,7 @@ var (
 func init() {
 	flag.Parse()
 	reporter = metrics.NewReporter(*serviceName)
-	limiter = rate.NewLimiter(1)
+	limiter = rate.NewLimiter(*limit)
 	services = strings.Split(*dependencies, ",")
 }
 
@@ -56,7 +58,7 @@ func op() (string, int) {
 	status := http.StatusOK
 	output := "( " + *serviceName + " "
 	done := func() {
-		output += fmt.Sprintf("%v )", status)
+		output += fmt.Sprintf("%v %v )", time.Since(start), status)
 		report(time.Since(start))
 	}
 
@@ -70,8 +72,10 @@ func op() (string, int) {
 	defer limiter.Out()
 
 	// Do some work
-	burnCpu(*opWeight)
-	output += fmt.Sprintf("%v ", *opWeight)
+	// burnCpu(*opWeight)
+	// output += fmt.Sprintf("%v ", *opWeight)
+	p := largestPrime(8000000) // ~0.1 cpu/sec
+	output += fmt.Sprintf("%v ", p)
 
 	// Call some other services
 	failure := false
@@ -89,6 +93,7 @@ func op() (string, int) {
 			failure = true
 			output += fmt.Sprintf("%q ", err.Error())
 		case resp.StatusCode != http.StatusOK:
+			resp.Body.Close()
 			failure = true
 			output += fmt.Sprintf("(%v %v)", s, resp.StatusCode)
 		default:
@@ -143,4 +148,61 @@ func burnCpu(d time.Duration) {
 	}()
 	time.Sleep(d)
 	close(done)
+}
+
+// Primes less than or equal to N will be generated
+// Algorithm from https://stackoverflow.com/a/21854246
+func allPrimes(N int) []int {
+
+	var x, y, n int
+	nsqrt := math.Sqrt(float64(N))
+
+	is_prime := make([]bool, N)
+
+	for x = 1; float64(x) <= nsqrt; x++ {
+		for y = 1; float64(y) <= nsqrt; y++ {
+			n = 4*(x*x) + y*y
+			if n <= N && (n%12 == 1 || n%12 == 5) {
+				is_prime[n] = !is_prime[n]
+			}
+			n = 3*(x*x) + y*y
+			if n <= N && n%12 == 7 {
+				is_prime[n] = !is_prime[n]
+			}
+			n = 3*(x*x) - y*y
+			if x > y && n <= N && n%12 == 11 {
+				is_prime[n] = !is_prime[n]
+			}
+		}
+	}
+
+	for n = 5; float64(n) <= nsqrt; n++ {
+		if is_prime[n] {
+			for y = n * n; y < N; y += n * n {
+				is_prime[y] = false
+			}
+		}
+	}
+
+	is_prime[2] = true
+	is_prime[3] = true
+
+	primes := make([]int, 0, 1270606)
+	for x = 0; x < len(is_prime)-1; x++ {
+		if is_prime[x] {
+			primes = append(primes, x)
+		}
+	}
+
+	// primes is now a slice that contains all primes numbers up to N
+	return primes
+}
+
+func largestPrime(max int) int {
+	p := allPrimes(max)
+	if len(p) > 0 {
+		return p[len(p)-1]
+	} else {
+		return 0
+	}
 }

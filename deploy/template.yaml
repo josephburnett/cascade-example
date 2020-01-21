@@ -21,6 +21,7 @@ spec:
         - --service-name=SERVICE
         - --op-weight-millicore-duration=WEIGHT
         - --generate-ops=GEN
+        - --ops-limit=LIMIT
         - --dependencies=DEPS
         image: github.com/josephburnett/cascade-example/cmd
         imagePullPolicy: Always
