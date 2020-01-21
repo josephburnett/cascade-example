@@ -94,7 +94,7 @@ spec:
         kind: Pod
         name: metrics
       metricName: custom.googleapis.com|ingress_qps
-      targetValue: "50"
+      targetValue: "30"
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment

@@ -51,7 +51,7 @@ func NewReporter(service, pod string) *Reporter {
 
 	// Update metrics once per second.
 	go func() {
-		ticker := time.NewTicker(time.Second)
+		ticker := time.NewTicker(10 * time.Second)
 		for {
 			select {
 			case <-ticker.C:
@@ -62,6 +62,7 @@ func NewReporter(service, pod string) *Reporter {
 				for _, qps := range []float64{r.successCount, r.failCount, r.overloadCount, r.timeoutCount} {
 					totalQps += qps
 				}
+				totalQps = totalQps / 10 // 10 second window
 				go reportQps(service, pod, totalQps)
 
 				// Report to Stackdriver

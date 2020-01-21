@@ -66,7 +66,7 @@ func op() (string, int) {
 	if ok := limiter.In(); !ok {
 		report = reporter.Overload
 		status = http.StatusServiceUnavailable
-		time.Sleep(*opWeight)
+		time.Sleep(5 * time.Millisecond)
 		done()
 		return output, status
 	}

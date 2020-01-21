@@ -79,7 +79,7 @@ setup :
 	kubectl create namespace cascade-example-bench --dry-run=true -o yaml | kubectl apply -f -
 
 dash :
-	watch 'kubectl get svc -n cascade-example; echo; kubectl get hpa -n cascade-example; echo; kubectl get pods -n cascade-example; echo; kubectl get pods -n cascade-example-bench'
+	watch 'kubectl get svc -n cascade-example; echo; kubectl get hpa -n cascade-example; echo; kubectl get pods -n cascade-example-bench'
 
 #  while true; do wget -q -O- http://metrics.cascade-example.svc.cluster.local/metrics | grep total_qps; sleep 2; done
 shell :
