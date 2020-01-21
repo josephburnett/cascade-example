@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load
+  namespace: cascade-example
+  labels:
+    app: load
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: load
+  template:
+    metadata:
+      labels:
+        app: load
+    spec:
+      containers:
+      - image: josephburnett/hey
+        command:
+        - hey
+        - -n 999999
+        - -c 100
+        - -q 10
+        - "http://a.cascade-example.svc.cluster.local"
+        imagePullPolicy: Always
+        name: cascade-example
+        resources:
+          requests:
+            cpu: 10m

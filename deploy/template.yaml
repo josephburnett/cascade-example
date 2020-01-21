@@ -19,13 +19,16 @@ spec:
       - command:
         args:
         - --service-name=SERVICE
-        - --request-weight-millicore-duration=WEIGHT
+        - --op-weight-millicore-duration=WEIGHT
+        - --generate-ops=GEN
         - --dependencies=DEPS
         image: github.com/josephburnett/cascade-example/cmd
         imagePullPolicy: Always
         name: cascade-example
         resources:
           requests:
+            cpu: CPU
+          limits:
             cpu: CPU
       - name: prometheus-to-sd
         image: gcr.io/google-containers/prometheus-to-sd:v0.5.0
@@ -70,13 +73,17 @@ metadata:
   name: SERVICE
   namespace: cascade-example
 spec:
+  minReplicas: 1
   maxReplicas: 10
   metrics:
-  - resource:
+  - type: Resource
+    resource:
       name: cpu
       targetAverageUtilization: 50
-    type: Resource
-  minReplicas: 1
+#  - type: Pods
+#    pods:
+#      metricName: a_qps
+#      targetAverageValue: 2
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
