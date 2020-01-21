@@ -14,28 +14,28 @@ all : metrics a b c d
 a : SERVICE = a
 a : WEIGHT = 20ms
 a : GEN = 0
-a : LIMIT = 10
+a : LIMIT = 5
 a : CPU = 200m
 a : DEPS = b
 
 b : SERVICE = b
 b : WEIGHT = 20ms
 b : GEN = 0
-b : LIMIT = 10
+b : LIMIT = 5
 b : CPU = 200m
 b : DEPS = c
 
 c : SERVICE = c
 c : WEIGHT = 20ms
 c : GEN = 0
-c : LIMIT = 10
+c : LIMIT = 5
 c : CPU = 200m
 c : DEPS = d
 
 d : SERVICE = d
 d : WEIGHT = 20ms
 d : GEN = 0
-d : LIMIT = 10
+d : LIMIT = 5
 d : CPU = 200m
 d : DEPS = 
 
