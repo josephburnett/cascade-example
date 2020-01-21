@@ -21,6 +21,7 @@ var (
 	mux     sync.Mutex
 	metrics map[string]map[string]*metric
 	qps     *prom.GaugeVec
+	ingress prom.Gauge
 )
 
 func init() {
@@ -32,7 +33,14 @@ func init() {
 		},
 		[]string{"service"},
 	)
+	ingress = prom.NewGauge(
+		prom.GaugeOpts{
+			Name:      "qps",
+			Subsystem: "ingress",
+		},
+	)
 	prom.MustRegister(qps)
+	prom.MustRegister(ingress)
 }
 
 func main() {
@@ -101,6 +109,9 @@ func reportMetrics() {
 		}
 		gauge := qps.WithLabelValues(service)
 		gauge.Set(float64(totalQps))
+		if service == "a" {
+			ingress.Set(float64(totalQps))
+		}
 		log.Printf("reporting (%v %v)", service, totalQps)
 	}
 }

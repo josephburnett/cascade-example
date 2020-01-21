@@ -87,24 +87,14 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: 50
+      targetAverageUtilization: 70
   - type: Object
     object:
       target:
         kind: Pod
         name: metrics
-      metricName: custom.googleapis.com|total_qps
-# Why can't I do this?
-#      selector:
-#        matchLabels:
-#          service: SERVICE
-      averageValue: "1"
-      targetValue: "1"
-# This is what I wish I could do.
-#  - type: Pods
-#    pods:
-#      metricName: a_qps
-#      targetAverageValue: 2
+      metricName: custom.googleapis.com|ingress_qps
+      targetValue: "50"
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
