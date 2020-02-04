@@ -13,6 +13,11 @@ Run a load test:
 make bench
 ```
 
+Watch the show:
+```
+make dash
+```
+
 Stop the load test:
 ```
 make nobench
