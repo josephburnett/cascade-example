@@ -22,3 +22,13 @@ Clean up:
 ```
 make clean
 ```
+
+## Prerequisites
+
+1. Kubectl pointing to a GKE cluster.
+2. [Stackdriver Metrics Adapter](https://github.com/GoogleCloudPlatform/k8s-stackdriver/blob/master/custom-metrics-stackdriver-adapter/README.md#configure-cluster) installed.
+3. [Ko](https://github.com/google/ko) installed with `KO_DOCKER_REPO` pointing to the GCP project in which the GKE cluster resides (for container building).
+
+## Disclaimers
+
+This is the first thing that barely worked, not necessarily production best practices.  But it's a reasonable example of how to setup a secondary HPA metric pointing to a frontline service to reduce time-to-recovery.
