@@ -31,4 +31,4 @@ make clean
 
 ## Disclaimers
 
-This is the first thing that barely worked, not necessarily production best practices.  But it's a reasonable example of how to setup a secondary HPA metric pointing to a frontline service to reduce time-to-recovery.
+This is the first thing that barely worked, not necessarily production best practices.  But it's a reasonable example of how to setup HPA with two metrics, CPU and a frontline service metric (qps) to reduce time-to-recovery.
